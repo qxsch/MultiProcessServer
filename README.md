@@ -8,6 +8,8 @@ The TCPServer class provides a very simple interface to communicate with a clien
 
 The TCPClient class provides a very simple interface to communicate with a server.
 
+You can send any data between the client and the server that can be [serialized][serialize].
+
 
 ### A simple example
 
@@ -33,3 +35,8 @@ $client->send("hi");
 
 echo $client->receive() ."\n";
 ```
+
+
+
+
+  [serialize]: http://php.net/serialize
