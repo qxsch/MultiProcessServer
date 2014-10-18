@@ -1,7 +1,7 @@
 MultiProcessServer
 ==================
 
-<p color="red">UNSTABLE EXPERIMENT</p>
+**UNSTABLE EXPERIMENT**
 
 **A multithreaded server for PHP**
 
