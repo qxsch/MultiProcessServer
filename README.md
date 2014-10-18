@@ -1,7 +1,7 @@
 MultiProcessServer
 ==================
 
-<span style="color:red; font-weight:bold; font-size:20pt;">UNSTABLE EXPERIMENT</span>
+<p color="red">UNSTABLE EXPERIMENT</p>
 
 **A multithreaded server for PHP**
 
