@@ -1,14 +1,14 @@
 <?php
 
-require_once(dirname(__DIR__).'/Observers/ObserverInterface.php');
-require_once(dirname(__DIR__).'/Observers/EchoObserver.php');
-require_once(dirname(__DIR__).'/Subjects/SubjectInterface.php');
-require_once(dirname(__DIR__).'/SocketException.php');
-require_once(dirname(__DIR__).'/SimpleSocketException.php');
-require_once(dirname(__DIR__).'/SimpleSocket.php');
-require_once(dirname(__DIR__).'/ServerWorkerInterface.php');
-require_once(dirname(__DIR__).'/ClosureServerWorker.php');
-require_once(dirname(__DIR__).'/TCPServer.php');
+require_once(dirname(__DIR__).'/src/Observers/ObserverInterface.php');
+require_once(dirname(__DIR__).'/src/Observers/EchoObserver.php');
+require_once(dirname(__DIR__).'/src/Subjects/SubjectInterface.php');
+require_once(dirname(__DIR__).'/src/SocketException.php');
+require_once(dirname(__DIR__).'/src/SimpleSocketException.php');
+require_once(dirname(__DIR__).'/src/SimpleSocket.php');
+require_once(dirname(__DIR__).'/src/ServerWorkerInterface.php');
+require_once(dirname(__DIR__).'/src/ClosureServerWorker.php');
+require_once(dirname(__DIR__).'/src/TCPServer.php');
 
 
 $server = new \QXS\MultiProcessServer\TCPServer(12345);  // setup the server for 127.0.0.1 on port 12345

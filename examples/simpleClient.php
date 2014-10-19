@@ -1,9 +1,9 @@
 <?php
 
-require_once(dirname(__DIR__).'/SocketException.php');
-require_once(dirname(__DIR__).'/SimpleSocketException.php');
-require_once(dirname(__DIR__).'/SimpleSocket.php');
-require_once(dirname(__DIR__).'/TCPClient.php');
+require_once(dirname(__DIR__).'/src/SocketException.php');
+require_once(dirname(__DIR__).'/src/SimpleSocketException.php');
+require_once(dirname(__DIR__).'/src/SimpleSocket.php');
+require_once(dirname(__DIR__).'/src/TCPClient.php');
 
 
 echo "Sending: hi\n";

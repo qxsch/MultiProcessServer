@@ -86,10 +86,12 @@ class TCPServer implements SubjectInterface {
 				break;
 			case SIGTERM:
 				// handle shutdown tasks
+				$this->destroy();
 				$this->exitPhp(0);
 				break;
 			case SIGHUP:
 				// handle restart tasks
+				$this->destroy();
 				break;
 			case SIGUSR1:
 				// handle sigusr

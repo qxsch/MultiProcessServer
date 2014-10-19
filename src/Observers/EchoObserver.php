@@ -16,14 +16,13 @@ class EchoObserver implements ObserverInterface {
 	 * @param \SplSubject $subject   the subject
 	 * @param int $eventType  A valid ObserverInterface::EV_* constant
 	 * @param array $metadata the meta data for the event
-	 * @return \Serializable Returns the result
 	 * @throws \Exception in case of a processing Error an Exception will be thrown
 	 */
 	public function update(\SplSubject $subject, $eventType=ObserverInterface::EV_UNKNOWN, array $metaData=array()) {
 		echo '['.date('Y-m-d H:i:s').']['.spl_object_hash($subject).'] Received an event of type ';
 		switch($eventType) {
 			case ObserverInterface::EV_SERVER_START: echo "SERVER START"; break;
-			case ObserverInterface::EV_SERVER_SHUTDOWN: echo "SERVER SHUTDOWN"; break;
+			case ObserverInterface::EV_SERVER_STOP: echo "SERVER STOP"; break;
 			case ObserverInterface::EV_SERVER_WAITING_FOR_FREE_FORKS: echo "SERVER WAITING FOR FREE FORKS"; break;
 			case ObserverInterface::EV_SERVER_WAITING_FOR_INCOMING_CONNECTION: echo "SERVER WAITING FOR INCOMING CONNECTIONS"; break;
 			case ObserverInterface::EV_SERVER_NEW_INCOMING_CONNECTION: echo "SERVDER NEW INCOMING CONNECTION"; break;
