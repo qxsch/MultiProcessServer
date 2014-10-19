@@ -19,6 +19,8 @@ Server Code:
 <?php
 
 $server = new \QXS\MultiProcessServer\TCPServer(12345);  // setup the server for 127.0.0.1 on port 12345
+// UNCOMMENT THE NEXT LINE TO SEE WHAT THE SERVER IS DOING
+//$server->attach(new \QXS\MultiProcessServer\Observers\EchoObserver());
 $server->create(new \QXS\MultiProcessServer\ClosureServerWorker(
     /**
      * @param \QXS\MultiProcessServer\SimpleSocket $serverSocket the socket to communicate with the client
