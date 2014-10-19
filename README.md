@@ -1,6 +1,10 @@
 MultiProcessServer
 ==================
 
+![Project Status](http://stillmaintained.com/qxsch/MultiProcessServer.png)
+
+[![Latest Stable Version](https://poser.pugx.org/qxsch/worker-pool/v/stable.png)](https://packagist.org/packages/qxsch/worker-pool) [![Total Downloads](https://poser.pugx.org/qxsch/worker-pool/downloads.png)](https://packagist.org/packages/qxsch/worker-pool) [![License](https://poser.pugx.org/qxsch/worker-pool/license.png)](https://packagist.org/packages/qxsch/worker-pool)
+
 **A multithreaded server for PHP**
 
 The TCPServer class provides a very simple interface to communicate with a client. You can control how many processes should be allowed to run concurrently. The TCPServer can be fully observed.
