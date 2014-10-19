@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__DIR).'/autoload.php');
+require_once(dirname(__DIR__).'/autoload.php');
 
 
 $server = new \QXS\MultiProcessServer\TCPServer(12345);  // setup the server for 127.0.0.1 on port 12345
@@ -11,6 +11,10 @@ $server->create(new \QXS\MultiProcessServer\ClosureServerWorker(
      */
     function(\QXS\MultiProcessServer\SimpleSocket $serverSocket) {
         // receive data and send it back
+        if(!$serverSocket->hasData(2)) {
+		$serverSocket->send('timeout reached');
+		return null;
+	}
         $data=(string)$serverSocket->receive();
         echo "Received: $data\n";
 	$data=strrev($data);
