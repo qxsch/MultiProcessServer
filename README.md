@@ -3,7 +3,7 @@ MultiProcessServer
 
 ![Project Status](http://stillmaintained.com/qxsch/MultiProcessServer.png)
 
-[![Latest Stable Version](https://poser.pugx.org/qxsch/multi-process-server/v/stable.png)](https://packagist.org/packages/qxsch/worker-pool) [![Total Downloads](https://poser.pugx.org/qxsch/worker-pool/downloads.png)](https://packagist.org/packages/qxsch/worker-pool) [![License](https://poser.pugx.org/qxsch/worker-pool/license.png)](https://packagist.org/packages/qxsch/worker-pool)
+[![Latest Stable Version](https://poser.pugx.org/qxsch/multi-process-server/v/stable.png)](https://packagist.org/packages/qxsch/multi-process-server) [![Total Downloads](https://poser.pugx.org/qxsch/multi-process-server/downloads.png)](https://packagist.org/packages/qxsch/multi-process-server) [![License](https://poser.pugx.org/qxsch/multi-process-server/license.png)](https://packagist.org/packages/qxsch/multi-process-server)
 
 **A multithreaded server for PHP**
 
