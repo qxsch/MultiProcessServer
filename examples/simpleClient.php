@@ -1,10 +1,6 @@
 <?php
 
-require_once(dirname(__DIR__).'/src/SocketException.php');
-require_once(dirname(__DIR__).'/src/SimpleSocketException.php');
-require_once(dirname(__DIR__).'/src/SimpleSocket.php');
-require_once(dirname(__DIR__).'/src/TCPClient.php');
-
+require_once(dirname(__DIR).'/autoload.php');
 
 echo "Sending: hi\n";
 
