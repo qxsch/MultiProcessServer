@@ -6,14 +6,18 @@
 
 namespace QXS\MultiProcessServer;
 
+use QXS\MultiProcessServer\Observers\ObserverInterface,
+    QXS\MultiProcessServer\Subjects\SubjectInterface;
 
-class TCPServer {
+
+class TCPServer implements SubjectInterface {
 	protected $socket;
 	protected $address='127.0.0.1';
 	protected $port;
 	protected $backlog=10;
 	protected $maxActiveForks=20;
 	protected $workerProcesses=array();
+	protected $observers;
 
 	/** @var array signals, that should be watched */
 	protected $signals = array(
@@ -23,6 +27,7 @@ class TCPServer {
 	public function __construct($port, $address = '127.0.0.1') {
 		$this->address=(string) $address;
 		$this->port=(int)$port;
+		$this->observers=new \SplObjectStorage();
 	}
 
 
@@ -43,16 +48,26 @@ class TCPServer {
 
 		$this->createSocket();
 
-		$this->serveSocket($worker);
-
 		// when adding signals use pcntl_signal_dispatch(); or declare ticks
 		foreach ($this->signals as $signo) {
 			pcntl_signal($signo, array($this, 'signalHandler'));
 		}
+
+		$this->notify(ObserverInterface::EV_SERVER_START, array(
+			'address' => $this->address,
+			'port' => $this->port,
+			'backlog' => $this->backlog,
+			'maxActiveForks' => $this->maxActiveForks,
+			'worker' => $worker,
+		));
+
+		$this->serveSocket($worker);
 	}
 
 	public function destroy() {
 		$this->closeSocket();
+
+		$this->notify(ObserverInterface::EV_SERVER_STOP);
 	}
 	
 	/**
@@ -100,8 +115,14 @@ class TCPServer {
 			if(pcntl_wifexited($stopSignal) === FALSE) {
 				// abnormal signal received
 			}
-			
-			unset($this->workerProcesses[$childpid]);
+
+			if(isset($this->workerProcesses[$childpid])) {
+				unset($this->workerProcesses[$childpid]);
+
+				$this->notify(ObserverInterface::EV_CLIENT_TERMINATED, array(
+					'pid' => $childpid,
+				));
+			}
 			
 			$childpid = pcntl_waitpid($pid, $status, WNOHANG);
 		}
@@ -135,27 +156,61 @@ class TCPServer {
 	}
 
 	protected function waitForFreeForks() {
+		$this->notify(ObserverInterface::EV_SERVER_WAITING_FOR_FREE_FORKS);
+		$i=0;
 		while(count($this->workerProcesses) >= $this->maxActiveForks && !empty($this->workerProcesses)) {
+			$i++;
 			pcntl_signal_dispatch();
-			usleep(10000);
+			usleep(100000);
+			// notify every second
+			if($i>=10) {
+				$this->notify(ObserverInterface::EV_SERVER_WAITING_FOR_FREE_FORKS);
+				$i=0;
+			}
 		}
 	}
 
 	protected function waitForIncomingConnection() {
-		//while(true) {
-		//	pcntl_signal_dispatch();
-		//	SimpleSocket accept
-		//	
-		//}
+		$this->notify(ObserverInterface::EV_SERVER_WAITING_FOR_INCOMING_CONNECTION);
+		$i=0;
+		while(true) {
+			$i++;
+			pcntl_signal_dispatch();
+			
+			// is the socket ready?
+			$rs=array($this->socket); $ws=array(); $es=array();
+			$socketsSelected = @socket_select($rs, $ws, $es,  0, 100000);
+			if($socketsSelected>=1) {
+				return NULL;
+			}
+
+			if($i>=10) {
+				$this->notify(ObserverInterface::EV_SERVER_WAITING_FOR_INCOMING_CONNECTION);
+				$i=0;
+			}
+		}
 		
 	}
 
 	protected function serveSocket(ServerWorkerInterface $worker) {
+		$address='127.0.0.1';
+		$port=0;
 		while(true) {
 			$this->waitForFreeForks();
+			$this->waitForIncomingConnection();
+
 			if(($clientSocket=@socket_accept($this->socket))===false) {
 				throw new SocketException('Failed to accept the socket. ' . socket_strerror(socket_last_error($this->socket)));
 			}
+
+			// get the data
+			socket_getpeername($clientSocket, $address, $port);
+			$this->notify(ObserverInterface::EV_SERVER_NEW_INCOMING_CONNECTION, array(
+				'address' => $this->address,
+				'port' => $this->port,
+				'remoteAddress' => $address,
+				'remotePort' => $port,
+			));
 
 			// fork a process
 			$processId = pcntl_fork();
@@ -174,9 +229,55 @@ class TCPServer {
 			} else {
 				// WE ARE IN THE PARENT
 				$this->workerProcesses[$processId]=true;
+				// closing the socket in the parent
+				socket_close($clientSocket);
+
+				$this->notify(ObserverInterface::EV_CLIENT_FORKED, array(
+					'remoteAddress' => $address,
+					'remotePort' => $port,
+					'pid' => $processId,
+				));
 			}
 		}
 	}
 
+
+	/**
+	 * Update the Observers
+	 *
+	 * @param \SplSubject $subject   the subject
+	 * @param int $eventType  A valid ObserverInterface::EV_* constant
+	 * @param array $metadata the meta data for the event
+	 * @return \Serializable Returns the result
+	 * @throws \Exception in case of a processing Error an Exception will be thrown
+	 */
+	public function notify($eventType=ObserverInterface::EV_UNKNOWN, array $metaData=array()) {
+		foreach($this->observers as $observer) {
+			if($observer instanceOf ObserverInterface) {
+				$observer->update($this, $eventType, $metaData);
+			}
+			else {
+				$observer->update($this);
+			}
+		}
+	}
+
+	/**
+	 * Attach an Observer
+	 *
+	 * @param \SplObserver $observer  the observer object
+	 */
+	public function attach(\SplObserver $observer) {
+		$this->observers->attach($observer);
+	}
+
+	/**
+	 * Detach an Observer
+	 *
+	 * @param \SplObserver $observer  the observer object
+	 */
+	public function detach(\SplObserver $observer) {
+		$this->observers->detach($observer);
+	}
 }
 

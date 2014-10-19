@@ -11,7 +11,7 @@ namespace QXS\MultiProcessServer\Subjects;
 interface SubjectInterface extends \SplSubject {
 
 	/**
-	 * Update the Subjects
+	 * Notify the Observers
 	 *
 	 * @param \SplSubject $subject   the subject
 	 * @param int $eventType  A valid ObserverInterface::EV_* constant

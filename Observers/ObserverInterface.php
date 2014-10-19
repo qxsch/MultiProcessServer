@@ -21,7 +21,7 @@ interface ObserverInterface extends \SplObserver {
 
 
 	/**
-	 * Update the Subjects
+	 * Update the Observer
 	 *
 	 * @param \SplSubject $subject   the subject
 	 * @param int $eventType  A valid ObserverInterface::EV_* constant
