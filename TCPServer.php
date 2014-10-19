@@ -36,14 +36,10 @@ class TCPServer {
 
 	
 	public function create(ServerWorkerInterface $worker, $backlog=10, $maxActiveForks=20) {
-		$this->backlog=$this->validateInt($backlog);
+		$this->backlog=$this->validateInt($backlog, 10);
 		// /proc/sys/net/core/somaxconn
 
-		$this->maxActiveForks=$this->validateInt($maxActiveForks);
-		if($backlog<=1) {
-			$backlog=10;
-		}
-		$this->backlog=$backlog;
+		$this->maxActiveForks=$this->validateInt($maxActiveForks, 20);
 
 		$this->createSocket();
 
@@ -114,18 +110,18 @@ class TCPServer {
 
 
 	protected function createSocket() {
-		$this->socket=socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		$this->socket=@socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 		if($this->socket===false) {
 			throw new SocketException('Failed to create the socket. ' . socket_strerror(socket_last_error()));
 		}
 		
 		//socket_set_option($this->socket, SOL_SOCKET, SO_REUSEADDR, 1);
 
-		if(socket_bind($this->socket, $this->address, $this->port)===false) {
+		if(@socket_bind($this->socket, $this->address, $this->port)===false) {
 			throw new SocketException('Failed to bind the socket on ' . $this->address . ':' . $this->port . '. ' . socket_strerror(socket_last_error($this->socket)));
 		}
 
-		if(socket_listen($this->socket, $backlog) === false) {
+		if(@socket_listen($this->socket, $backlog) === false) {
 			throw new SocketException('Failed to listen on the socket with backlog ' . $backlog . '. ' . socket_strerror(socket_last_error($this->socket )));
 		}
 	}
@@ -139,20 +135,28 @@ class TCPServer {
 	}
 
 	protected function waitForFreeForks() {
-		while(count($this->workerProcesses) >= $this->maxActiveForks || empty($this->workerProcesses)) {
+		while(count($this->workerProcesses) >= $this->maxActiveForks && !empty($this->workerProcesses)) {
 			pcntl_signal_dispatch();
 			usleep(10000);
 		}
 	}
 
+	protected function waitForIncomingConnection() {
+		//while(true) {
+		//	pcntl_signal_dispatch();
+		//	SimpleSocket accept
+		//	
+		//}
+		
+	}
+
 	protected function serveSocket(ServerWorkerInterface $worker) {
 		while(true) {
 			$this->waitForFreeForks();
-			
 			if(($clientSocket=@socket_accept($this->socket))===false) {
 				throw new SocketException('Failed to accept the socket. ' . socket_strerror(socket_last_error($this->socket)));
 			}
-				
+
 			// fork a process
 			$processId = pcntl_fork();
 			if ($processId < 0) {

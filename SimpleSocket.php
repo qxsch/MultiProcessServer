@@ -3,7 +3,7 @@
  * A simple object wrapper arround the socket functions
  */
 
-namespace QXS\WorkerPool;
+namespace QXS\MultiProcessServer;
 
 /**
  * Socket Class for IPC
