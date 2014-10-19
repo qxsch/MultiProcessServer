@@ -19,9 +19,10 @@ $server->create(new \QXS\MultiProcessServer\ClosureServerWorker(
      */
     function(\QXS\MultiProcessServer\SimpleSocket $serverSocket) {
         // receive data and send it back
-        $data=$serverSocket->receive();
-        echo "$data\n";
-	sleep(1);
+        $data=(string)$serverSocket->receive();
+        echo "Received: $data\n";
+	$data=strrev($data);
+        echo "Sending $data\n";
         $serverSocket->send($data);
     }
 ));

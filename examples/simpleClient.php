@@ -6,7 +6,9 @@ require_once(dirname(__DIR__).'/SimpleSocket.php');
 require_once(dirname(__DIR__).'/TCPClient.php');
 
 
+echo "Sending: Hi\n";
+
 $client = new \QXS\MultiProcessServer\TCPClient(12345);  // connect to 127.0.0.1 on port 12345
 $client->send("hi");
 
-echo $client->receive() ."\n";
+echo "Receiving: ".$client->receive() ."\n";
