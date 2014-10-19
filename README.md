@@ -5,7 +5,7 @@ MultiProcessServer
 
 **A multithreaded server for PHP**
 
-The TCPServer class provides a very simple interface to communicate with a client.
+The TCPServer class provides a very simple interface to communicate with a client. You can control how many processes should be allowed to run concurrently.
 
 The TCPClient class provides a very simple interface to communicate with a server.
 
