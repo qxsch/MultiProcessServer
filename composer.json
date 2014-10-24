@@ -2,7 +2,7 @@
 	"name": "qxsch/multi-process-server",
 	"description": "Runs a multi threaded server.",
 	"keywords": ["fork", "parallel", "server", "socket"],
-	"homepage": "https://github.com/qxsch/WorkerPool",
+	"homepage": "https://github.com/qxsch/MultiProcessServer",
 	"type": "library",
 	"license": "GPL-3.0+",
 	"authors": [
