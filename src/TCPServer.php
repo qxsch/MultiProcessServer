@@ -18,6 +18,11 @@ class TCPServer implements SubjectInterface {
 	protected $maxActiveForks=20;
 	protected $workerProcesses=array();
 	protected $observers;
+	/**
+	 * @see posix_getpwnam()
+	 * @var array |null the user, that the server should use
+	 */
+	protected $runAsUserInfo=null;
 
 	/** @var array signals, that should be watched */
 	protected $signals = array(
@@ -31,7 +36,7 @@ class TCPServer implements SubjectInterface {
 	}
 
 
-	public function validateInt($int, $default) {
+	protected function validateInt($int, $default) {
 		$int=(int)$int;
 		if($int<=1) {
 			$int=(int)$default;
@@ -51,6 +56,22 @@ class TCPServer implements SubjectInterface {
 		// when adding signals use pcntl_signal_dispatch(); or declare ticks
 		foreach ($this->signals as $signo) {
 			pcntl_signal($signo, array($this, 'signalHandler'));
+		}
+
+		if(
+			isset($this->runAsUserInfo['uid']) &&
+			isset($this->runAsUserInfo['gid'])
+		) {
+			if(
+				posix_setegid($this->runAsUserInfo['gid']) &&
+				posix_seteuid($this->runAsUserInfo['uid'])
+			) {
+				$this->notify(ObserverInterface::EV_SERVER_IMPERSONATE, $this->runAsUserInfo);
+			}
+			else {
+				$this->closeSocket();
+				throw new ImpersonationException('Cannot switch to user "'.$this->runAsUserInfo['name'].'"');
+			}
 		}
 
 		$this->notify(ObserverInterface::EV_SERVER_START, array(
@@ -280,6 +301,19 @@ class TCPServer implements SubjectInterface {
 	 */
 	public function detach(\SplObserver $observer) {
 		$this->observers->detach($observer);
+	}
+
+	/**
+	 * Sets the user the server should use
+	 *
+	 * @param string $user  set the user, that the server should use
+	 */
+	public function runAsUser($user) {
+		$info=posix_getpwnam($user);
+		if($info===false || !is_array($info)) {
+			throw new \DomainException('Invalid username. The user "'.$user.'" does not exist.');
+		}
+		$this->runAsUserInfo=$info;
 	}
 }
 

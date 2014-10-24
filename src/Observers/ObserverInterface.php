@@ -18,6 +18,7 @@ interface ObserverInterface extends \SplObserver {
 	const EV_SERVER_NEW_INCOMING_CONNECTION=5;
 	const EV_CLIENT_FORKED=6;
 	const EV_CLIENT_TERMINATED=7;
+	const EV_SERVER_IMPERSONATE=8;
 
 
 	/**
