@@ -19,7 +19,7 @@ class EchoObserver implements ObserverInterface {
 	 * @throws \Exception in case of a processing Error an Exception will be thrown
 	 */
 	public function update(\SplSubject $subject, $eventType=ObserverInterface::EV_UNKNOWN, array $metaData=array()) {
-		echo '['.date('Y-m-d H:i:s').']['.spl_object_hash($subject).'] Received an event of type ';
+		echo '['.date('Y-m-d H:i:s').']['.get_class($subject).'] Received an event of type ';
 		switch($eventType) {
 			case ObserverInterface::EV_SERVER_IMPERSONATE: echo "SERVER IMPERSONATE"; break;
 			case ObserverInterface::EV_SERVER_START: echo "SERVER START"; break;
