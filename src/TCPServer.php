@@ -178,26 +178,32 @@ class TCPServer implements SubjectInterface {
 		exit();
 	}
 
+	/**
+	 * Waits until more forks can be forked
+	 * Observers are just being notified in case, the server is waiting for returning children
+	 */
 	protected function waitForFreeForks() {
-		$this->notify(ObserverInterface::EV_SERVER_WAITING_FOR_FREE_FORKS);
-		$i=0;
+		$i=10;
 		while(count($this->workerProcesses) >= $this->maxActiveForks && !empty($this->workerProcesses)) {
-			$i++;
 			pcntl_signal_dispatch();
-			usleep(100000);
 			// notify every second
 			if($i>=10) {
 				$this->notify(ObserverInterface::EV_SERVER_WAITING_FOR_FREE_FORKS);
 				$i=0;
 			}
+			pcntl_signal_dispatch();
+			usleep(100000);
+			$i++;
 		}
 	}
 
+	/**
+	 * Waits until there is a new connection
+	 * Observers are just being notified in case, the server is waiting for a connection
+	 */
 	protected function waitForIncomingConnection() {
-		$this->notify(ObserverInterface::EV_SERVER_WAITING_FOR_INCOMING_CONNECTION);
-		$i=0;
+		$i=10;
 		while(true) {
-			$i++;
 			pcntl_signal_dispatch();
 			
 			// is the socket ready?
@@ -211,6 +217,7 @@ class TCPServer implements SubjectInterface {
 				$this->notify(ObserverInterface::EV_SERVER_WAITING_FOR_INCOMING_CONNECTION);
 				$i=0;
 			}
+			$i++;
 		}
 		
 	}
