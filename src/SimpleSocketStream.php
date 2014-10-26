@@ -1,16 +1,16 @@
 <?php
 /**
- * A simple object wrapper arround the socket functions
+ * A simple object wrapper arround the socket stream functions
  */
 
 namespace QXS\MultiProcessServer;
 
 /**
- * Socket Class for IPC
+ * Socket Stream Class for IPC
  */
-class SimpleSocket {
+class SimpleSocketStream {
 
-	/** @var resource the connection socket, that is used for IPC */
+	/** @var resource the connection socket stream, that is used for IPC */
 	protected $socket = NULL;
 	/**
 	 * This Variable can be used to attack custom information to the socket
@@ -37,59 +37,60 @@ class SimpleSocket {
 		@socket_close($this->socket);
 	}
 
+
 	/**
 	 * Selects active sockets with a timeout
-	 * @param SimpleSocket[] $readSockets Array of \QXS\WorkerPool\SimpleSocket Objects, that should be monitored for read activity
-	 * @param SimpleSocket[] $writeSockets Array of \QXS\WorkerPool\SimpleSocket Objects, that should be monitored for write activity
-	 * @param SimpleSocket[] $exceptSockets Array of \QXS\WorkerPool\SimpleSocket Objects, that should be monitored for except activity
+	 * @param SimpleSocketStream[] $readStreams Array of \QXS\MultiProcessServer\SimpleSocketStream Objects, that should be monitored for read activity
+	 * @param SimpleSocketStream[] $writeStreams Array of \QXS\MultiProcessServer\SimpleSocketStream Objects, that should be monitored for write activity
+	 * @param SimpleSocketStream[] $exceptStreams Array of \QXS\MultiProcessServer\SimpleSocketStream Objects, that should be monitored for except activity
 	 * @param int $sec seconds to wait until a timeout is reached
 	 * @param int $usec microseconds to wait a timeout is reached
-	 * @return array Associative Array of \QXS\WorkerPool\SimpleSocket Objects, that matched the monitoring, with the following keys 'read', 'write', 'except'
+	 * @return array Associative Array of \QXS\MultiProcessServer\SimpleSocketStream Objects, that matched the monitoring, with the following keys 'read', 'write', 'except'
 	 */
-	public static function select(array $readSockets = array(), array $writeSockets = array(), array $exceptSockets = array(), $sec = 0, $usec = 0) {
+	public static function select(array $readStreams = array(), array $writeStreams = array(), array $exceptStreams = array(), $sec = 0, $usec = 0) {
 		$out = array();
 		$out['read'] = array();
 		$out['write'] = array();
 		$out['except'] = array();
 
-		if(count($readSockets) === 0){
+		if(count($readStreams) === 0){
 			return $out;
 		}
 
-		$readSocketsResources = array();
-		$writeSocketsResources = array();
-		$exceptSocketsResources = array();
-		$readSockets = self::createSocketsIndex($readSockets, $readSocketsResources);
-		$writeSockets = self::createSocketsIndex($writeSockets, $writeSocketsResources);
-		$exceptSockets = self::createSocketsIndex($exceptSockets, $exceptSocketsResources);
+		$readStreamsResources = array();
+		$writeStreamsResources = array();
+		$exceptStreamsResources = array();
+		$readStreams = self::createSocketsIndex($readStreams, $readStreamsResources);
+		$writeStreams = self::createSocketsIndex($writeStreams, $writeStreamsResources);
+		$exceptStreams = self::createSocketsIndex($exceptStreams, $exceptStreamsResources);
 
-		$socketsSelected = socket_select($readSocketsResources, $writeSocketsResources, $exceptSocketsResources, $sec, $usec);
+		$socketsSelected = socket_select($readStreamsResources, $writeStreamsResources, $exceptStreamsResources, $sec, $usec);
 		if ($socketsSelected === FALSE) {
 			return $out;
 		}
 
-		foreach ($readSocketsResources as $socketResource) {
-			$out['read'][] = $readSockets[intval($socketResource)];
+		foreach ($readStreamsResources as $socketResource) {
+			$out['read'][] = $readStreams[intval($socketResource)];
 		}
-		foreach ($writeSocketsResources as $socketResource) {
-			$out['write'][] = $writeSockets[intval($socketResource)];
+		foreach ($writeStreamsResources as $socketResource) {
+			$out['write'][] = $writeStreams[intval($socketResource)];
 		}
-		foreach ($exceptSocketsResources as $socketResource) {
-			$out['except'][] = $exceptSockets[intval($socketResource)];
+		foreach ($exceptStreamsResources as $socketResource) {
+			$out['except'][] = $exceptStreams[intval($socketResource)];
 		}
 
 		return $out;
 	}
 
 	/**
-	 * @param SimpleSocket[] $sockets
+	 * @param SimpleSocketStream[] $sockets
 	 * @param array $socketsResources
-	 * @return SimpleSocket[]
+	 * @return SimpleSocketStream[]
 	 */
 	protected static function createSocketsIndex($sockets, &$socketsResources) {
 		$socketsIndex = array();
 		foreach ($sockets as $socket) {
-			if (!$socket instanceof SimpleSocket) {
+			if (!$socket instanceof SimpleSocketStream) {
 				continue;
 			}
 			$resourceId = $socket->getResourceId();
@@ -101,11 +102,19 @@ class SimpleSocket {
 	}
 
 	/**
-	 * Get the id of the socket resource
+	 * Get the id of the provider resource
 	 * @return int the id of the socket resource
 	 */
 	public function getResourceId() {
 		return intval($this->socket);
+	}
+
+	/**
+	 * Get the provider resource
+	 * @return resource the rovider resource
+	 */
+	public function getProviderResource() {
+		return $this->socket;
 	}
 
 	/**
@@ -146,7 +155,7 @@ class SimpleSocket {
 	/**
 	 * Write the data to the socket in a predetermined format
 	 * @param mixed $data the data, that should be sent
-	 * @throws \QXS\WorkerPool\SimpleSocketException in case of an error
+	 * @throws \QXS\MultiProcessServer\SimpleSocketStreamException in case of an error
 	 */
 	public function send($data) {
 		$serialized = serialize($data);
@@ -158,7 +167,7 @@ class SimpleSocket {
 		while ($total > 0) {
 			$sent = @socket_write($this->socket, $buffer);
 			if ($sent === FALSE) {
-				throw new SimpleSocketException('Sending failed with: ' . socket_strerror(socket_last_error()));
+				throw new SimpleSocketStreamException('Sending failed with: ' . socket_strerror(socket_last_error()));
 				break;
 			}
 			$total -= $sent;
@@ -168,7 +177,7 @@ class SimpleSocket {
 
 	/**
 	 * Read a data packet from the socket in a predetermined format.
-	 * @throws \QXS\WorkerPool\SimpleSocketException in case of an error
+	 * @throws \QXS\MultiProcessServer\SimpleSocketStreamException in case of an error
 	 * @return mixed the data, that has been received
 	 */
 	public function receive() {
@@ -177,7 +186,7 @@ class SimpleSocket {
 		do {
 			$read = socket_read($this->socket, 4 - strlen($hdr));
 			if ($read === FALSE) {
-				throw new SimpleSocketException('Reception failed with: ' . socket_strerror(socket_last_error()));
+				throw new SimpleSocketStreamException('Reception failed with: ' . socket_strerror(socket_last_error()));
 			} elseif ($read === '' || $read === NULL) {
 				return NULL;
 			}
@@ -199,5 +208,14 @@ class SimpleSocket {
 		$data = unserialize($buffer);
 		return $data;
 	}
+
+	/**
+	 * Is the stream open?
+	 * @return bool true, in case the stream is open and not eof
+	 */
+	public function isOpen() {
+		return is_resource($this->socket);
+	}
+
 }
 

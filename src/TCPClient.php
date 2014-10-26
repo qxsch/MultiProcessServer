@@ -7,7 +7,7 @@
 namespace QXS\MultiProcessServer;
 
 
-class TCPClient extends SimpleSocket {
+class TCPClient extends SimpleSocketStream {
 
 	public function __construct($port, $address = '127.0.0.1') {
 		$address=(string) $address;

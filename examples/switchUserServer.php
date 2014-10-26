@@ -14,9 +14,9 @@ $server->runAsUser("nobody");
 $server->attach(new \QXS\MultiProcessServer\Observers\EchoObserver());  // say what the server is doing
 $server->create(new \QXS\MultiProcessServer\ClosureServerWorker(
     /**
-     * @param \QXS\MultiProcessServer\SimpleSocket $serverSocket the socket to communicate with the client
+     * @param \QXS\MultiProcessServer\SimpleSocketStream $serverSocket the socket to communicate with the client
      */
-    function(\QXS\MultiProcessServer\SimpleSocket $serverSocket) {
+    function(\QXS\MultiProcessServer\SimpleSocketStream $serverSocket) {
         // receive data and send it back
         if(!$serverSocket->hasData(2)) {
 		$serverSocket->send('timeout reached');

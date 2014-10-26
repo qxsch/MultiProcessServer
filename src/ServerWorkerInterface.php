@@ -27,10 +27,10 @@ interface ServerWorkerInterface {
 	/**
 	 * Serve the client
 	 *
-	 * @param \QXS\WorkerPool\SimpleSocket $simpleSocket the communication socket
+	 * @param \QXS\WorkerPool\SimpleSocketStream $simpleSocket the communication socket
 	 * @return \Serializable Returns the result
 	 * @throws \Exception in case of a processing Error an Exception will be thrown
 	 */
-	public function serveClient(\QXS\MultiProcessServer\SimpleSocket $simpleSocket);
+	public function serveClient(\QXS\MultiProcessServer\SimpleSocketStream $simpleSocket);
 }
 

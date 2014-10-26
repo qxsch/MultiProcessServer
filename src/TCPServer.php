@@ -252,7 +252,7 @@ class TCPServer implements SubjectInterface {
 				// WE ARE IN THE CHILD
 				$worker->onProcessCreate();
 				$worker->serveClient(
-					new SimpleSocket($clientSocket)
+					new SimpleSocketStream($clientSocket)
 				);
 				$worker->onProcessDestroy();
 				$this->exitPhp();
