@@ -27,6 +27,11 @@ class SimpleSocketStream {
 		if (!is_resource($socket) && strtolower(@get_resource_type($socket) != 'stream')) {
 			throw new \InvalidArgumentException('Stream resource is required!');
 		}
+		$data=stream_get_meta_data($socket);
+		if(strpos($data['stream_type'], 'tcp_socket')===false) {
+			throw new \InvalidArgumentException('TCP Socket Stream resource is required!');
+		}
+
 		$this->socket = $socket;
 	}
 
