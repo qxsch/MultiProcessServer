@@ -24,8 +24,8 @@ class SimpleSocketStream {
 	 * @throws \InvalidArgumentException
 	 */
 	public function __construct($socket) {
-		if (!is_resource($socket) && strtolower(@get_resource_type($socket) != 'socket')) {
-			throw new \InvalidArgumentException('Socket resource is required!');
+		if (!is_resource($socket) && strtolower(@get_resource_type($socket) != 'stream')) {
+			throw new \InvalidArgumentException('Stream resource is required!');
 		}
 		$this->socket = $socket;
 	}
@@ -34,7 +34,7 @@ class SimpleSocketStream {
 	 * The destructor
 	 */
 	public function __destruct() {
-		@socket_close($this->socket);
+		@fclose($this->socket);
 	}
 
 
@@ -64,7 +64,7 @@ class SimpleSocketStream {
 		$writeStreams = self::createSocketsIndex($writeStreams, $writeStreamsResources);
 		$exceptStreams = self::createSocketsIndex($exceptStreams, $exceptStreamsResources);
 
-		$socketsSelected = socket_select($readStreamsResources, $writeStreamsResources, $exceptStreamsResources, $sec, $usec);
+		$socketsSelected = stream_select($readStreamsResources, $writeStreamsResources, $exceptStreamsResources, $sec, $usec);
 		if ($socketsSelected === FALSE) {
 			return $out;
 		}
@@ -110,14 +110,6 @@ class SimpleSocketStream {
 	}
 
 	/**
-	 * Get the provider resource
-	 * @return resource the rovider resource
-	 */
-	public function getProviderResource() {
-		return $this->socket;
-	}
-
-	/**
 	 * Get the socket resource
 	 * @return resource the socket resource
 	 */
@@ -144,7 +136,7 @@ class SimpleSocketStream {
 		$read = array($this->socket);
 		$write = array();
 		$except = array();
-		$sockets = socket_select($read, $write, $except, $sec, $usec);
+		$sockets = stream_select($read, $write, $except, $sec, $usec);
 
 		if ($sockets === FALSE) {
 			return FALSE;
@@ -165,9 +157,9 @@ class SimpleSocketStream {
 		unset($hdr);
 		$total = strlen($buffer);
 		while ($total > 0) {
-			$sent = @socket_write($this->socket, $buffer);
+			$sent = @fwrite($this->socket, $buffer);
 			if ($sent === FALSE) {
-				throw new SimpleSocketStreamException('Sending failed with: ' . socket_strerror(socket_last_error()));
+				throw new SimpleSocketStreamException('Sending failed.');
 				break;
 			}
 			$total -= $sent;
@@ -184,9 +176,9 @@ class SimpleSocketStream {
 		// read 4 byte length first
 		$hdr = '';
 		do {
-			$read = socket_read($this->socket, 4 - strlen($hdr));
+			$read = fread($this->socket, 4 - strlen($hdr));
 			if ($read === FALSE) {
-				throw new SimpleSocketStreamException('Reception failed with: ' . socket_strerror(socket_last_error()));
+				throw new SimpleSocketStreamException('Reception failed.');
 			} elseif ($read === '' || $read === NULL) {
 				return NULL;
 			}
@@ -198,7 +190,7 @@ class SimpleSocketStream {
 		// read the full buffer
 		$buffer = '';
 		do {
-			$read = socket_read($this->socket, $len - strlen($buffer));
+			$read = fread($this->socket, $len - strlen($buffer));
 			if ($read === FALSE || $read == '') {
 				return NULL;
 			}
@@ -214,8 +206,43 @@ class SimpleSocketStream {
 	 * @return bool true, in case the stream is open and not eof
 	 */
 	public function isOpen() {
-		return is_resource($this->socket);
+		return is_resource($this->socket) && !feof($this->socket);
 	}
 
+
+
+	/**
+	 * Get the peer's certificate
+	 * @return array the parsed certificate of the peer
+	 * @see http://ch1.php.net/manual/de/function.openssl-x509-parse.php
+	 */
+	public function parsePeerX509Certificate() {
+	        $o=$this->getOptions();
+		return openssl_x509_parse($o['ssl']['peer_certificate']);
+	}
+
+	/**
+	 * Get the stream socket options
+	 *
+	 * array(1) {
+	 *   ["ssl"]=>
+	 *   array(6) {
+	 *     ["disable_compression"]=> bool(true)
+	 *     ["capture_peer_cert"]=> bool(true)
+	 *     ["capture_peer_cert_chain"]=> bool(true)
+	 *     ["verify_peer"]=> bool(false)
+	 *     ["peer_certificate"]=> resource(13) of type (OpenSSL X.509)
+	 *     ["peer_certificate_chain"]=>
+	 *     array(1) {
+	 *       [0]=> resource(14) of type (OpenSSL X.509)
+	 *     }
+	 *   }
+	 * }
+	 * @return array the socket options
+	 * @see http://php.net/manual/de/function.stream-context-get-params.php
+	 */
+	public function getOptions() {
+		return stream_context_get_options($this->socket);
+	}
 }
 

@@ -24,7 +24,8 @@ class EchoObserver implements ObserverInterface {
 			// event loop
 			case ObserverInterface::EV_SERVER_WAITING_FOR_FREE_FORKS: echo "SERVER WAITING FOR FREE FORKS"; break;
 			case ObserverInterface::EV_SERVER_WAITING_FOR_INCOMING_CONNECTION: echo "SERVER WAITING FOR INCOMING CONNECTIONS"; break;
-			case ObserverInterface::EV_SERVER_NEW_INCOMING_CONNECTION: echo "SERVDER NEW INCOMING CONNECTION"; break;
+			case ObserverInterface::EV_SERVER_NEW_INCOMING_CONNECTION: echo "SERVER NEW INCOMING CONNECTION"; break;
+			case ObserverInterface::EV_SERVER_FAILED_INCOMING_CONNECTION: echo "SERVER FAILED INCOMING CONNECTION"; break;
 			case ObserverInterface::EV_CLIENT_FORKED: echo "CLIENT FORKED"; break;
 			case ObserverInterface::EV_CLIENT_TERMINATED: echo "CLIENT TERMINATED"; break;
 			// startup

@@ -12,6 +12,7 @@ use QXS\MultiProcessServer\Observers\ObserverInterface,
 
 class TCPServer implements SubjectInterface {
 	protected $socket;
+	protected $socketConfig;
 	protected $address='127.0.0.1';
 	protected $port;
 	protected $backlog=10;
@@ -29,10 +30,18 @@ class TCPServer implements SubjectInterface {
 		SIGCHLD, SIGTERM, SIGHUP, SIGUSR1
 	);
 	
-	public function __construct($port, $address = '127.0.0.1') {
+	public function __construct($port, $address = '127.0.0.1', SocketStreamConfiguration $socketConfig=null) {
 		$this->address=(string) $address;
 		$this->port=(int)$port;
 		$this->observers=new \SplObjectStorage();
+		if($socketConfig===null) {
+			$this->socketConfig=new SocketStreamConfiguration();
+		}
+		else {
+			$this->socketConfig=$socketConfig;
+		}
+		// check the configuration and throw an exception in case of an error
+		$this->socketConfig->checkConfiguration(true);
 	}
 
 
@@ -154,24 +163,25 @@ class TCPServer implements SubjectInterface {
 
 
 	protected function createSocket() {
-		$this->socket=@socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		// creating the context
+		$context=stream_context_create(
+			array_merge(
+				$this->socketConfig->getContextConfiguration(),
+				array(
+					'bindto' => $this->address . ':' . $this->port,
+					'backlog' => $backlog
+				)
+			)
+		);
+
+		$this->socket=stream_socket_server($this->socketConfig->getProtocol().'://'.$this->address . ':' . $this->port, $errno, $errstr, STREAM_SERVER_BIND|STREAM_SERVER_LISTEN, $context);
 		if($this->socket===false) {
-			throw new SocketException('Failed to create the socket. ' . socket_strerror(socket_last_error()));
-		}
-		
-		//socket_set_option($this->socket, SOL_SOCKET, SO_REUSEADDR, 1);
-
-		if(@socket_bind($this->socket, $this->address, $this->port)===false) {
-			throw new SocketException('Failed to bind the socket on ' . $this->address . ':' . $this->port . '. ' . socket_strerror(socket_last_error($this->socket)));
-		}
-
-		if(@socket_listen($this->socket, $backlog) === false) {
-			throw new SocketException('Failed to listen on the socket with backlog ' . $backlog . '. ' . socket_strerror(socket_last_error($this->socket )));
+			throw new SocketException('Failed to create the socket. ' . $errstr, $errno);
 		}
 	}
 
 	protected function closeSocket() {
-		socket_close($this->socket);
+		fclose($this->socket);
 	}
 	
 	protected function exitPhp() {
@@ -208,7 +218,7 @@ class TCPServer implements SubjectInterface {
 			
 			// is the socket ready?
 			$rs=array($this->socket); $ws=array(); $es=array();
-			$socketsSelected = @socket_select($rs, $ws, $es,  0, 100000);
+			$socketsSelected = @stream_select($rs, $ws, $es,  0, 100000);
 			if($socketsSelected>=1) {
 				return NULL;
 			}
@@ -229,18 +239,29 @@ class TCPServer implements SubjectInterface {
 			$this->waitForFreeForks();
 			$this->waitForIncomingConnection();
 
-			if(($clientSocket=@socket_accept($this->socket))===false) {
-				throw new SocketException('Failed to accept the socket. ' . socket_strerror(socket_last_error($this->socket)));
+			$clientSocket=@stream_socket_accept($this->socket, 60, $address);
+			if($clientSocket===false) {
+				// notify the observers
+				$this->notify(ObserverInterface::EV_SERVER_FAILED_INCOMING_CONNECTION, array(
+					'address' => $this->address,
+					'port' => $this->port,
+				));
+				continue;
 			}
 
-			// get the data
-			socket_getpeername($clientSocket, $address, $port);
+			// split address:port string
+			$address=explode(':', $address);
+			$port=array_pop($address);
+			$address=implode(':', $address);
+
+			// notify the observers
 			$this->notify(ObserverInterface::EV_SERVER_NEW_INCOMING_CONNECTION, array(
 				'address' => $this->address,
 				'port' => $this->port,
 				'remoteAddress' => $address,
 				'remotePort' => $port,
 			));
+
 
 			// fork a process
 			$processId = pcntl_fork();
@@ -260,7 +281,7 @@ class TCPServer implements SubjectInterface {
 				// WE ARE IN THE PARENT
 				$this->workerProcesses[$processId]=true;
 				// closing the socket in the parent
-				socket_close($clientSocket);
+				fclose($clientSocket);
 
 				$this->notify(ObserverInterface::EV_CLIENT_FORKED, array(
 					'remoteAddress' => $address,
