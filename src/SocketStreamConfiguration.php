@@ -67,6 +67,17 @@ class SocketStreamConfiguration {
 	}
 
 	/**
+	 * Set the verify depth
+	 * @param int $depth a number >= 1
+	 */
+	public function setVerifyDepth($depth) {
+		if($depth >= 1) {
+			$this->config['ssl']['verify_depth']=(int)$depth;
+		}
+		return $this;
+	}
+
+	/**
 	 * Set the path to the ca file
 	 * @param string $cafile the path to the cafile
 	 */
