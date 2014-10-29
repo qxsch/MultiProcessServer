@@ -163,16 +163,11 @@ class TCPServer implements SubjectInterface {
 
 
 	protected function createSocket() {
+		$options=$this->socketConfig->getContextConfiguration();
+		$options['socket']['bindto'] = $this->address . ':' . $this->port;
+		$options['socket']['backlog'] = $this->backlog;
 		// creating the context
-		$context=stream_context_create(
-			array_merge(
-				$this->socketConfig->getContextConfiguration(),
-				array(
-					'bindto' => $this->address . ':' . $this->port,
-					'backlog' => $backlog
-				)
-			)
-		);
+		$context=stream_context_create($options);
 
 		$this->socket=stream_socket_server($this->socketConfig->getProtocol().'://'.$this->address . ':' . $this->port, $errno, $errstr, STREAM_SERVER_BIND|STREAM_SERVER_LISTEN, $context);
 		if($this->socket===false) {
