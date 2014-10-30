@@ -1,46 +1,61 @@
 <?php
 
-$pem_passphrase = 'test';
-$pemfile = __DIR__.'/server.pem';
+function generatePEMFile($pem_passphrase, $pemfile, $dn, $enforce=false) {
+	if(!is_array($dn)) {
+		$dn = array(
+			'countryName' => 'EU',
+			'stateOrProvinceName' => 'Europe',
+			'localityName' => 'Europe',
+			'organizationName' => 'QXSCH/MultiProcessServer',
+			'organizationalUnitName' => 'TLS SERVER',
+			'commonName' => 'QXSCH',
+			'emailAddress' => 'mail@me.net'
+		);
+	}
 
+	$enforce = (bool) $enforce;
 
-if(!file_exists($pemfile)) {
-	// Certificate data:
-	$dn = array(
-		'countryName' => 'EU',
-		'stateOrProvinceName' => 'Europe',
-		'localityName' => 'Europe',
-		'organizationName' => 'QXSCH/MultiProcessServer',
-		'organizationalUnitName' => 'TLS SERVER',
-		'commonName' => 'QXSCH',
-		'emailAddress' => 'mail@me.net'
-	);
+	if(!file_exists($pemfile) || $enforce) {
+		// Generate certificate
+		$privkey = openssl_pkey_new();
+		$cert    = openssl_csr_new($dn, $privkey);
+		$cert    = openssl_csr_sign($cert, null, $privkey, 365);
 
-	// Generate certificate
-	$privkey = openssl_pkey_new();
-	$cert    = openssl_csr_new($dn, $privkey);
-	$cert    = openssl_csr_sign($cert, null, $privkey, 365);
+		// Generate PEM file
+		$pem = array();
+		openssl_x509_export($cert, $pem[0], false);
+		openssl_pkey_export($privkey, $pem[1], $pem_passphrase);
+		$pem = implode($pem);
 
-	// Generate PEM file
-	$pem = array();
-	openssl_x509_export($cert, $pem[0], false);
-	openssl_pkey_export($privkey, $pem[1], $pem_passphrase);
-	$pem = implode($pem);
-
-	// Save PEM file
-	file_put_contents($pemfile, $pem);
+		// Save PEM file
+		file_put_contents($pemfile, $pem);
+	}
 }
 
-$context = stream_context_create();
+$server_pem_passphrase = 'test';
+$server_pemfile = __DIR__.'/server.pem';
+$server_dn = array(
+	'countryName' => 'EU',
+	'stateOrProvinceName' => 'Europe',
+	'localityName' => 'Europe',
+	'organizationName' => 'QXSCH/MultiProcessServer',
+	'organizationalUnitName' => 'TLS SERVER',
+	'commonName' => 'QXSCH SERVER',
+	'emailAddress' => 'mail@me.net'
+);
+generatePEMFile($server_pem_passphrase, $server_pemfile, $server_dn);
 
-// local_cert must be in PEM format
-stream_context_set_option($context, 'ssl', 'local_cert', $pemfile);
-// Pass Phrase (password) of private key
-stream_context_set_option($context, 'ssl', 'passphrase', $pem_passphrase);
-stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
-stream_context_set_option($context, 'ssl', 'verify_peer', false);
+$client_pem_passphrase = 'test';
+$client_pemfile = __DIR__.'/client.pem';
+$client_dn = array(
+	'countryName' => 'EU',
+	'stateOrProvinceName' => 'Europe',
+	'localityName' => 'Europe',
+	'organizationName' => 'QXSCH/MultiProcessServer',
+	'organizationalUnitName' => 'TLS CLIENT',
+	'commonName' => 'QXSCH CLIENT',
+	'emailAddress' => 'mail@me.net'
+);
+generatePEMFile($client_pem_passphrase, $client_pemfile, $client_dn);
 
-// Create the server socket
-$server = stream_socket_server('tls://0.0.0.0:9001', $errno, $errstr, STREAM_SERVER_BIND|STREAM_SERVER_LISTEN, $context);
 
-var_dump(get_resource_type($server));

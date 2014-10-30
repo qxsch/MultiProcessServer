@@ -11,7 +11,7 @@ $streamConfig
 	//->setCNMatchCheck(false)
 	//->setCaFile(__DIR__.'/ca-certificates.crt')
 	//->setCiphers('ALL:!aNULL:!ADH:!eNULL:!LOW:!EXP:RC4+RSA:+HIGH:-MEDIUM')
-	->setCert($pemfile, $pem_passphrase)
+	->setCert($server_pemfile, $server_pem_passphrase)
 	//->allowSelfSigned(true)
 ;
 
@@ -32,6 +32,16 @@ $server->create(new \QXS\MultiProcessServer\ClosureServerWorker(
 		$serverSocket->send('timeout reached');
 		return null;
 	}
+
+	$clientCert=$serverSocket->parsePeerX509Certificate();
+	if(empty($clientCert)) {
+		echo "No client cert presented...\n";
+	}
+	else {
+		echo "Client cert is:\n";
+		var_dump($clientCert['subject']);
+	}
+
         $data=(string)$serverSocket->receive();
         echo "Received: $data\n";
 	$data=strrev($data);

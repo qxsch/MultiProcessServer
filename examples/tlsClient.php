@@ -10,7 +10,7 @@ $streamConfig
 	//->setCNMatchCheck(false)
 	//->setCaFile(__DIR__.'/ca-certificates.crt')
 	//->setCiphers('ALL:!aNULL:!ADH:!eNULL:!LOW:!EXP:RC4+RSA:+HIGH:-MEDIUM')
-	//->setCert($pemfile, $pem_passphrase)
+	->setCert($client_pemfile, $client_pem_passphrase)
 	//->allowSelfSigned(true)
 ;
 

@@ -223,6 +223,9 @@ class SimpleSocketStream {
 	 */
 	public function parsePeerX509Certificate() {
 	        $o=$this->getOptions();
+		if(!isset($o['ssl']['peer_certificate']) || strpos(@get_resource_type($o['ssl']['peer_certificate']), 'OpenSSL')===false) {
+			return array();
+		}
 		return openssl_x509_parse($o['ssl']['peer_certificate']);
 	}
 
