@@ -13,6 +13,7 @@ The TCPClient class provides a very simple interface to communicate with a serve
 
 You can send any data between the client and the server that can be [serialized][serialize].
 
+TLS Encryption with server and client certificate is supported (mutual authentication).
 
 ### A simple example
 
