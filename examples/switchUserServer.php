@@ -4,7 +4,9 @@ require_once(dirname(__DIR__).'/autoload.php');
 
 
 if(posix_getuid()!==0) {
-	die("Please run this as root...\n");
+	echo "Please run this as root...\n";
+	echo "You should see now an ImpersonationException,\n";
+	echo "because non-root users are not authorized to set the uid/gid.\n\n\n";
 }
 
 
