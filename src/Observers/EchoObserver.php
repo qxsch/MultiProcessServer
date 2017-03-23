@@ -30,8 +30,8 @@ class EchoObserver implements ObserverInterface {
 			case ObserverInterface::EV_CLIENT_TERMINATED: echo "CLIENT TERMINATED"; break;
 			// startup
 			case ObserverInterface::EV_SERVER_IMPERSONATE: echo "SERVER IMPERSONATE"; break;
-			case ObserverInterface::EV_SERVER_START: echo "SERVER START"; break;
-			case ObserverInterface::EV_SERVER_STOP: echo "SERVER STOP"; break;
+			case ObserverInterface::EV_SERVER_STARTED: echo "SERVER START"; break;
+			case ObserverInterface::EV_SERVER_STOPPED: echo "SERVER STOP"; break;
 			// unknown exception
 			default: echo 'UNKNOWN VALUE '.((int)$eventType);
 		}

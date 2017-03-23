@@ -11,8 +11,8 @@ namespace QXS\MultiProcessServer\Observers;
 interface ObserverInterface extends \SplObserver {
 
 	const EV_UNKNOWN=0;
-	const EV_SERVER_START=1;
-	const EV_SERVER_STOP=2;
+	const EV_SERVER_STARTED=1;
+	const EV_SERVER_STOPPED=2;
 	const EV_SERVER_WAITING_FOR_FREE_FORKS=3;
 	const EV_SERVER_WAITING_FOR_INCOMING_CONNECTION=4;
 	const EV_SERVER_NEW_INCOMING_CONNECTION=5;

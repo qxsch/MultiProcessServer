@@ -130,6 +130,11 @@ class SocketStreamConfiguration {
 		if(@$this->config['ssl']['capath']!='' && @$this->config['ssl']['verify_peer']!==true) {
 			$errors[]='You cannot set a ca file without enabling peer verification.';
 		}
+		if($throwException) {
+			if(!empty($errors)) {
+				throw new SocketStreamConfigurationException(implode("\n", $errors));
+			}
+		}
 		return $errors;
 	}
 

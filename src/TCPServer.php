@@ -83,7 +83,7 @@ class TCPServer implements SubjectInterface {
 			}
 		}
 
-		$this->notify(ObserverInterface::EV_SERVER_START, array(
+		$this->notify(ObserverInterface::EV_SERVER_STARTED, array(
 			'address' => $this->address,
 			'port' => $this->port,
 			'backlog' => $this->backlog,
@@ -97,7 +97,7 @@ class TCPServer implements SubjectInterface {
 	public function destroy() {
 		$this->closeSocket();
 
-		$this->notify(ObserverInterface::EV_SERVER_STOP);
+		$this->notify(ObserverInterface::EV_SERVER_STOPPED);
 	}
 	
 	/**
@@ -231,8 +231,8 @@ class TCPServer implements SubjectInterface {
 		$address='127.0.0.1';
 		$port=0;
 		while(true) {
-			$this->waitForFreeForks();
 			$this->waitForIncomingConnection();
+			$this->waitForFreeForks();
 
 			$clientSocket=@stream_socket_accept($this->socket, 60, $address);
 			if($clientSocket===false) {
