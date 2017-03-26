@@ -1,7 +1,7 @@
 MultiProcessServer
 ==================
 
-![Project Status](http://stillmaintained.com/qxsch/MultiProcessServer.png)
+[![Project Status](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 
 [![Latest Stable Version](https://poser.pugx.org/qxsch/multi-process-server/v/stable.png)](https://packagist.org/packages/qxsch/multi-process-server) [![Total Downloads](https://poser.pugx.org/qxsch/multi-process-server/downloads.png)](https://packagist.org/packages/qxsch/multi-process-server) [![License](https://poser.pugx.org/qxsch/multi-process-server/license.png)](https://packagist.org/packages/qxsch/multi-process-server)
 
