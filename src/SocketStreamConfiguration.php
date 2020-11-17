@@ -39,7 +39,7 @@ class SocketStreamConfiguration {
 	 * @param bool $option false = disable TLS,  true = enable TLS
 	 */
 	public function disableTLS($option=false) {
-		$this->enableTLS(false);
+		$this->enableTLS((bool)$option);
 		return $this;
 	}
 
@@ -53,8 +53,37 @@ class SocketStreamConfiguration {
 	}
 
 	/**
+	 * Set the peer name for the client certificate check
+	 * @param string $peername  set the peer name
+	 */
+	public function setPeerName($peername) {
+		$peername = trim($peername);
+		if($peername != '') {
+			$this->config['ssl']['peer_name']=(string)$peername;
+		}
+		else {
+			unset($this->config['ssl']['peer_name']);
+		}
+		return $this;
+	}
+	
+	/**
+	 * Set the common name for client certificate check
+	 * @param string $cn  check the value of the client cert common name
+	 * @deprecated please set the peer name
+	 */
+	public function setCNMatchHost($cn) {
+		$cn = trim($cn);
+		if($cn != '') {
+			$this->config['ssl']['CN_match']=(string)$cn;
+		}
+		return $this;
+	}
+	
+	/**
 	 * Should the CN of the peers certificate be checked?
 	 * @param bool $option true = check the certificate's CN
+	 * @deprecated please set the peer name
 	 */
 	public function setCNMatchCheck($option) {
 		if($option) {
